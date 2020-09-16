@@ -1,0 +1,2 @@
+swaggerui :
+  jsonPath : "hello.json"
