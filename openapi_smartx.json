@@ -1,0 +1,460 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SmartX Integration APIs",
+    "description": "This is a sample set of APIs exposed for SmartX for integration with American Portfolios.",
+    "contact": {
+      "email": "apiteam@americanportfolios.com"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api-tst.americanportfolios.com/homeport/smx/1.0"
+    }
+  ],
+  "tags": [
+    {
+      "name": "instruction_engine",
+      "description": "APIs for interacting with Instruction Engine. The Instruction Engine is essentially an instruction queue used by various processes create to indicate to other processes what they need to do when certain events occur by creating an instruction. The instruction type is the address for the target process. The target process is essentially an instruction executor for that specific type of instruction."
+    }
+  ],
+  "paths": {
+    "/login": {
+      "post": {
+        "servers": [
+          {
+            "url": "https://api-tst.americanportfolios.com/ap/"
+          }
+        ],
+        "tags": [
+          "login"
+        ],
+        "summary": "login to get token",
+        "requestBody": {
+          "description": "username and password",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/user"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "token generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/token"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/instruction_engine": {
+      "post": {
+        "tags": [
+          "instruction_engine"
+        ],
+        "summary": "Add a new instruction to the instruction queue",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "accessToken",
+            "schema": {
+              "type": "string",
+              "format": "jwt"
+            },
+            "required": true
+          }
+        ],
+        "operationId": "add_instruction",
+        "requestBody": {
+          "description": "Instruction object that needs to be added to the store",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/instruction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "instruction is successfully created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/instruction"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "405": {
+            "description": "Invalid input",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "instruction_engine"
+        ],
+        "summary": "Find instructions by different query performs",
+        "description": "Muliple instructions information can be recieved via passing parameters like {\"status\": [\"new\", \"pending\"]}",
+        "operationId": "find_instructions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "accessToken",
+            "schema": {
+              "type": "string",
+              "format": "jwt"
+            },
+            "required": true
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "description": "Tags to filter by",
+            "schema": {
+              "type": "object",
+              "format": "json"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/instruction"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid tag value",
+            "content": {}
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        },
+        "deprecated": false,
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/instruction_engine/find_by_type": {
+      "get": {
+        "tags": [
+          "instruction_engine"
+        ],
+        "summary": "Finds instructions by type of instruction",
+        "description": "Muliple instruction types can be provided with comma separated strings. Use \"SmartX_Model_Setup\", \"SmartX_Model_Update\", \"SmartX_Billing_Setup\"",
+        "operationId": "find_instructions_by_type",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "accessToken",
+            "schema": {
+              "type": "string",
+              "format": "jwt"
+            },
+            "required": true
+          },
+          {
+            "name": "instruction_type",
+            "in": "query",
+            "description": "Tags to filter by",
+            "required": true,
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "string",
+              "example": "SmartX_Model_Setup,SmartX_Model_Update, SmartX_Billing_Setup"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/instruction"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid tag value",
+            "content": {}
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        },
+        "deprecated": false,
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/instruction_engine/{instruction_id}": {
+      "get": {
+        "tags": [
+          "instruction_engine"
+        ],
+        "summary": "Find instruction by ID",
+        "description": "Returns a single instruction",
+        "operationId": "getInstructionById",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "accessToken",
+            "schema": {
+              "type": "string",
+              "format": "jwt"
+            },
+            "required": true
+          },
+          {
+            "name": "instruction_id",
+            "in": "path",
+            "description": "ID of instruction to return",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/instruction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied",
+            "content": {}
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Pet not found",
+            "content": {}
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    },
+    "/instruction_engine/{instruction_id}/update_status": {
+      "post": {
+        "tags": [
+          "instruction_engine"
+        ],
+        "summary": "updates status of instruction",
+        "operationId": "update_status",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "accessToken",
+            "schema": {
+              "type": "string",
+              "format": "jwt"
+            },
+            "required": true
+          },
+          {
+            "name": "instruction_id",
+            "in": "path",
+            "description": "ID of instruction to update",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "description": "status to be updated"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/instruction"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        },
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "user": {
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "smartx"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "smartx_password"
+          }
+        }
+      },
+      "token": {
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        }
+      },
+      "instruction": {
+        "required": [
+          "name",
+          "instruction_type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "example": "set target for account 2237127278321218217821"
+          },
+          "instruction_type": {
+            "type": "string",
+            "enum": [
+              "SmartX Model Setup",
+              "SmartX Model Update",
+              "SmartX Billing Setup"
+            ],
+            "example": "SmartX Model Setup"
+          },
+          "status": {
+            "type": "string",
+            "description": "instruction status in the queue",
+            "enum": [
+              "new",
+              "pending execution",
+              "executed",
+              "cancelled",
+              "error"
+            ]
+          },
+          "created_on": {
+            "type": "string",
+            "description": "created time"
+          },
+          "updated_on": {
+            "type": "string",
+            "description": "updated time"
+          },
+          "instruction_json": {
+            "type": "object",
+            "properties": {
+              "account_id": {
+                "type": "string"
+              },
+              "model_id": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "account_id": "2237127278321218217821",
+              "model_id": "2237127278321218217821"
+            }
+          }
+        },
+        "xml": {
+          "name": "instruction"
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Access token is missing or invalid"
+      }
+    }
+  }
+}
